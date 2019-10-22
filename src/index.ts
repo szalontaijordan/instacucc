@@ -1,28 +1,20 @@
 import { launch } from 'puppeteer';
 import { ProfileService } from './services/profile.service';
 
-import * as fs from 'fs';
+import express from 'express';
 
 (async () => {
-    try {
-        const browser = await launch();
-        const profileService = new ProfileService(browser);
-        {
-            const response = await profileService.getUserPosts('iringodesign', 10, 0);
-            fs.writeFileSync('../iringodesign.json', JSON.stringify(response, null, 2))
-            console.log(response.posts.length);
-        }
-        {
-            const response = await profileService.getUserPosts('g.szalontai', 33, 0);
-            fs.writeFileSync('../g.szalontai.json', JSON.stringify(response, null, 2))
-            console.log(response.posts.length);
-        }
-        {
-            const response = await profileService.getUserPosts('therock', 50, 0);
-            fs.writeFileSync('../therock.json', JSON.stringify(response, null, 2))
-            console.log(response.posts.length);
-        }
-    } catch (e) {
-        console.error(e);
-    }
+    const app = express();
+    const port = process.env.PORT || 3000;
+
+    const browser = await launch({ args: [ '--no-sandbox' ]});
+    const profileService = new ProfileService(browser);
+
+    app.get('/ig/:username/:page', async (req, res) => {
+        const { username, page} = req.params;
+        const response = await profileService.getUserPosts(username, Number(page));
+        res.send(response);
+    });
+
+    app.listen(port, () => console.log('Application starts at port', port));
 })();

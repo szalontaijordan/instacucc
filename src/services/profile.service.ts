@@ -6,37 +6,40 @@ export class ProfileService {
     constructor(private browser: Browser) {
     }
 
-    async getUserPosts(username: string, $top: number, $skip: number): Promise<{ posts: Array<any> }> {
+    async getUserPosts(username: string, page: number, pageSize: number = 20): Promise<{ posts: Array<any> }> {
+        return this.getUserPostChunk(username, pageSize, (page - 1) * pageSize);
+    }
+
+    private async getUserPostChunk(username: string, $top: number, $skip: number): Promise<{ posts: Array<any> }> {
+        console.time(`ProfileService.getUserPosts(${username}, ${$top}, ${$skip})`);
         const page = await this.createProfilePage();
-        const getGraphQLQueryURL = new Promise((resolve, reject) => {
+        const getGraphQLQuery: Promise<{ url: string }> = new Promise((resolve, reject) => {
             page.on('response', async response => {
                 if (this.isGraphURL(response)) {
                     resolve(response.json());
                 }
-                if (response.url().includes('user_id')) {
-                    setTimeout(() => reject('There is only one page of this profile'), 1000);
-                }
             });
         });
-    
+        const getGraphQLQueryTimeout: Promise<{ url: string }> = new Promise(resolve => {
+            setTimeout(() => resolve({ url: '' }), 1000)
+        });
+
         await page.goto(`https://instagram.com/${username}`);
 
-        let url = '';
+        let { url } = await Promise.race([ getGraphQLQuery, getGraphQLQueryTimeout ]);
+        console.log(url);
         let end_cursor = '';
-        try {
-            url = (await getGraphQLQueryURL as { url: string }).url;
-        } catch (e) {
-        }
 
         let posts: Array<any> = [];
-        const initialEdges = await page.evaluate(() => {
-            return (window as any)._sharedData.entry_data.ProfilePage[0].graphql.user.edge_owner_to_timeline_media.edges;
+        const initialMedia = await page.evaluate(() => {
+            return (window as any)._sharedData.entry_data.ProfilePage[0].graphql.user.edge_owner_to_timeline_media;
         });
         await page.close();
 
-        posts = [...posts, ...initialEdges.map((edge: any) => this.mapEdgeToPost(edge))];
+        posts = [...posts, ...initialMedia.edges.map((edge: any) => this.mapEdgeToPost(edge))];
 
         if (posts.length >= $skip + $top) {
+            console.timeEnd(`ProfileService.getUserPosts(${username}, ${$top}, ${$skip})`);
             return {
                 posts: posts.slice($skip, $skip + $top)
             };
@@ -45,6 +48,10 @@ export class ProfileService {
         if (url) {
             do {
                 const response = await fetch(url);
+                if (!response.ok) {
+                    const { status, statusText, headers } = response;
+                    throw new Error(JSON.stringify({ status, statusText, headers }));
+                }
                 const json = await response.json();
                 
                 posts = [...posts, ...json.data.user.edge_owner_to_timeline_media.edges.map((edge: any) => this.mapEdgeToPost(edge))];
@@ -58,12 +65,13 @@ export class ProfileService {
             } while (posts.length < $skip + $top);    
         }
 
+        console.timeEnd(`ProfileService.getUserPosts(${username}, ${$top}, ${$skip})`);
         return {
             posts: posts.slice($skip, $skip + $top)
         };
     }
 
-    private async createProfilePage(): Promise<Page> {
+    private async createProfilePage(batchSize: number = 20): Promise<Page> {
         const page = await this.browser.newPage();
 
         page.setRequestInterception(true);
@@ -72,7 +80,7 @@ export class ProfileService {
             if (this.isGraphURL(request)) {
                 request.respond({
                     status: 200,
-                    body: JSON.stringify({ url: request.url().replace(/%22first%22%3A[0-9]+/, '%22first%22%3A50') }),
+                    body: JSON.stringify({ url: request.url().replace(/%22first%22%3A[0-9]+/, `%22first%22%3A${batchSize}`) }),
                     contentType: 'application/json'
                 });
             } else {
