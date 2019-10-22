@@ -2,10 +2,16 @@ import { Browser, Page } from 'puppeteer';
 import fetch from 'node-fetch';
 import { GraphUserResponse, Edge } from 'instagram.types';
 import { InstagramPost, InstagramPostMap } from 'common.types';
+import { createEmbedTemplate } from './embed.template';
 
 export class ProfileService {
 
     constructor(private browser: Browser) {
+    }
+
+    getTemplateForPost(username: string, post: InstagramPost) {
+        const { caption, shortCode, takenAtTimestamp } = post;
+        return createEmbedTemplate(shortCode, caption,username, '', new Date(takenAtTimestamp));
     }
 
     async getUserPosts(username: string, page: number, pageSize: number = 20): Promise<{ posts: Array<any> }> {
@@ -102,11 +108,14 @@ export class ProfileService {
         const hashTags = caption.match(/\#\w+/gi);
         const takenAtTimestamp = node.taken_at_timestamp;
 
-        return { caption, shortCode, hashTags, takenAtTimestamp };
+        const post = { caption, shortCode, hashTags, takenAtTimestamp };
+        const template = this.getTemplateForPost(edge.node.owner.username, post);
+
+        return { ...post, template };
     }
  
     private getPageOfPosts(posts: InstagramPostMap, $skip: number, $top: number): Array<InstagramPost> {
-        return Object.values(posts).slice($skip, $skip + $top)
+        return Object.values(posts).slice($skip, $skip + $top);
     }
 
     private isPageFull(posts: InstagramPostMap, $skip: number, $top: number): boolean {

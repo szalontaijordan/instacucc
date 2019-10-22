@@ -23,5 +23,24 @@ import express from 'express';
         }
     });
 
+    app.get('/ig/:username', (req, res) => {
+        const { username } = req.params;
+        res.send(`
+            <style>
+                .instagram-media {
+                    flex: 0 0 25%
+                }
+            </style>
+            <script src="//www.instagram.com/embed.js"></script>
+            <script>fetch("/ig/${username}/1").then(res => res.json()).then(json => {
+                document.body.innerHTML += ''
+                    + '<div style="display: flex; flex-wrap: wrap; justify-content: space-evenly;">'
+                    + json.posts.map(x => x.template).join('')
+                    + '</div>';
+                window.instgrm.Embeds.process();
+            })</script>
+        `);
+    });
+
     app.listen(port, () => console.log('Application starts at port', port));
 })();

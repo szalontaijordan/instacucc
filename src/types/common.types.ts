@@ -3,6 +3,7 @@ export interface InstagramPost {
     shortCode: string;
     hashTags: Array<string> | null;
     takenAtTimestamp: number;
+    template?: string;
 }
 
 export interface InstagramPostMap {
