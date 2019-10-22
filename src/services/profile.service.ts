@@ -21,7 +21,7 @@ export class ProfileService {
             });
         });
         const getGraphQLQueryTimeout: Promise<{ url: string }> = new Promise(resolve => {
-            setTimeout(() => resolve({ url: '' }), 1000)
+            setTimeout(() => resolve({ url: 'timeout' }), 1000);
         });
 
         await page.goto(`https://instagram.com/${username}`);
@@ -45,7 +45,7 @@ export class ProfileService {
             };
         }
 
-        if (url) {
+        if (url !== 'timeout') {
             do {
                 const response = await fetch(url);
                 if (!response.ok) {
