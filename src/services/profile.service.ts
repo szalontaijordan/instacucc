@@ -13,20 +13,15 @@ export class ProfileService {
     private async getUserPostChunk(username: string, $top: number, $skip: number): Promise<{ posts: Array<any> }> {
         console.time(`ProfileService.getUserPosts(${username}, ${$top}, ${$skip})`);
         const page = await this.createProfilePage();
-        const getGraphQLQuery: Promise<{ url: string }> = Promise.resolve()
-            .then(() => {
-                const onResponse: Promise<{ url: string }> = new Promise(resolve => {
-                    page.on('response', async response => {
-                        console.log('\n', '[PUPPETEER]: ', response.url());
-                        if (this.isGraphURL(response)) {
-                            resolve(response.json());
-                        }
-                    });
-                });
-                return onResponse;
+        const getGraphQLQuery: Promise<{ url: string }> = new Promise(resolve => {
+            page.on('response', async response => {
+                if (this.isGraphURL(response)) {
+                    resolve(response.json());
+                }
             });
+        });
         const getGraphQLQueryTimeout: Promise<{ url: string }> = new Promise(resolve => {
-            setTimeout(() => resolve({ url: 'timeout' }), 1000);
+            setTimeout(() => resolve({ url: 'timeout' }), 3000);
         });
 
         await page.goto(`https://instagram.com/${username}`);
