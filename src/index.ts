@@ -19,7 +19,8 @@ import { processHashtagList } from './utils/hashtag';
             const { hashtags, pageSize } = req.query;
 
             const hashtagArray = processHashtagList(hashtags || '');
-            const response = await profileService.getUserPosts(username, hashtagArray, Number(page), Number(pageSize) || 10);
+            const chunkSize = Math.min(Number(pageSize) || 10, 50);
+            const response = await profileService.getUserPosts(username, hashtagArray, Number(page), chunkSize);
 
             res.send(response);
         } catch (e) {
