@@ -16,10 +16,10 @@ import { processHashtagList } from './utils/hashtag';
     app.get('/ig/:username/:page', async (req, res) => {
         try {
             const { username, page} = req.params;
-            const { hashtags } = req.query;
+            const { hashtags, pageSize } = req.query;
 
             const hashtagArray = processHashtagList(hashtags || '');
-            const response = await profileService.getUserPosts(username, hashtagArray, Number(page));
+            const response = await profileService.getUserPosts(username, hashtagArray, Number(page), Number(pageSize) || 10);
 
             res.send(response);
         } catch (e) {
