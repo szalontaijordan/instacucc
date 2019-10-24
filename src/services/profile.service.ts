@@ -121,7 +121,7 @@ export class ProfileService {
         const takenAtTimestamp = node.taken_at_timestamp;
 
         const post = { caption, shortCode, hashTags: hashTags.map(tag => tag.toLowerCase()), takenAtTimestamp };
-        const template = this.getTemplateForPost(post, index);
+        const template = this.getTemplateForPost(post, index).replace(/\s+/g, ' ');
 
         return { ...post, template };
     }
