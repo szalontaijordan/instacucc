@@ -2,6 +2,7 @@ import { launch } from 'puppeteer';
 import { ProfileService } from './services/profile.service';
 
 import express from 'express';
+import { processHashtagList } from './utils/hashtag';
 
 (async () => {
     const app = express();
@@ -15,7 +16,11 @@ import express from 'express';
     app.get('/ig/:username/:page', async (req, res) => {
         try {
             const { username, page} = req.params;
-            const response = await profileService.getUserPosts(username, Number(page));
+            const { hashtags } = req.query;
+
+            const hashtagArray = processHashtagList(hashtags || '');
+            const response = await profileService.getUserPosts(username, hashtagArray, Number(page));
+
             res.send(response);
         } catch (e) {
             const message = e.message || e.statusText || 'Internal error';
@@ -27,7 +32,10 @@ import express from 'express';
 
     app.get('/ig/:username', async (req, res) => {
         const { username } = req.params;
-        const response = await profileService.getUserPosts(username, 1);
+        const { hashtags } = req.query;
+
+        const hashtagArray = processHashtagList(hashtags || '');
+        const response = await profileService.getUserPosts(username, hashtagArray, 1);
         res.send(`
             <style>
                 .instagram-media {

@@ -3,14 +3,26 @@ import fetch from 'node-fetch';
 import { GraphUserResponse, Edge } from 'instagram.types';
 import { InstagramPost, InstagramPostMap } from 'common.types';
 import { createEmbedTemplate } from './embed.template';
+import { hashtagRegex } from '../utils/hashtag';
 
 export class ProfileService {
 
     constructor(private browser: Browser) {
     }
 
-    async getUserPosts(username: string, page: number, pageSize: number = 10): Promise<{ posts: Array<any> }> {
-        return this.getUserPostChunk(username, pageSize, (page - 1) * pageSize);
+    async getUserPosts(username: string, hashtags: Array<string>, page: number, pageSize: number = 10): Promise<{ posts: Array<InstagramPost> }> {
+        const chunk = await this.getUserPostChunk(username, pageSize, (page - 1) * pageSize);
+
+        if (!hashtags || hashtags.length === 0) {
+            return chunk;
+        }
+
+        const posts = chunk.posts.filter(post => {
+            return Array.isArray(post.hashTags)
+                && post.hashTags.some(tag => hashtags.includes(tag));;
+        });
+
+        return { posts };
     }
 
     private getTemplateForPost(post: InstagramPost, index: number) {
@@ -18,7 +30,7 @@ export class ProfileService {
         return createEmbedTemplate(shortCode, index);
     }
 
-    private async getUserPostChunk(username: string, $top: number, $skip: number): Promise<{ posts: Array<any> }> {
+    private async getUserPostChunk(username: string, $top: number, $skip: number): Promise<{ posts: Array<InstagramPost> }> {
         console.time(`ProfileService.getUserPosts(${username}, ${$top}, ${$skip})`);
         const page = await this.createProfilePage($top);
         const getGraphQLQuery: Promise<{ url: string }> = new Promise(resolve => {
@@ -105,10 +117,10 @@ export class ProfileService {
         const node = edge.node;
         const caption = node.edge_media_to_caption.edges[0].node.text;
         const shortCode = node.shortcode;
-        const hashTags = caption.match(/\#\w+/gi);
+        const hashTags = caption.match(hashtagRegex) || [];
         const takenAtTimestamp = node.taken_at_timestamp;
 
-        const post = { caption, shortCode, hashTags, takenAtTimestamp };
+        const post = { caption, shortCode, hashTags: hashTags.map(tag => tag.toLowerCase()), takenAtTimestamp };
         const template = this.getTemplateForPost(post, index);
 
         return { ...post, template };
