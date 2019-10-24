@@ -9,18 +9,18 @@ export class ProfileService {
     constructor(private browser: Browser) {
     }
 
-    getTemplateForPost(username: string, post: InstagramPost) {
-        const { caption, shortCode, takenAtTimestamp } = post;
-        return createEmbedTemplate(shortCode, caption,username, '', new Date(takenAtTimestamp));
+    async getUserPosts(username: string, page: number, pageSize: number = 10): Promise<{ posts: Array<any> }> {
+        return this.getUserPostChunk(username, pageSize, (page - 1) * pageSize);
     }
 
-    async getUserPosts(username: string, page: number, pageSize: number = 20): Promise<{ posts: Array<any> }> {
-        return this.getUserPostChunk(username, pageSize, (page - 1) * pageSize);
+    private getTemplateForPost(post: InstagramPost, index: number) {
+        const { shortCode } = post;
+        return createEmbedTemplate(shortCode, index);
     }
 
     private async getUserPostChunk(username: string, $top: number, $skip: number): Promise<{ posts: Array<any> }> {
         console.time(`ProfileService.getUserPosts(${username}, ${$top}, ${$skip})`);
-        const page = await this.createProfilePage();
+        const page = await this.createProfilePage($top);
         const getGraphQLQuery: Promise<{ url: string }> = new Promise(resolve => {
             page.on('response', async response => {
                 if (this.isGraphURL(response)) {
@@ -44,7 +44,7 @@ export class ProfileService {
         await page.close();
         
         const { user } = initialData;
-        user.edge_owner_to_timeline_media.edges.forEach(edge => posts[edge.node.shortcode] = this.mapEdgeToPost(edge));
+        user.edge_owner_to_timeline_media.edges.forEach((edge, i) => posts[edge.node.shortcode] = this.mapEdgeToPost(edge, i));
         
         if (this.isPageFull(posts, $skip, $top)) {
             return {
@@ -66,7 +66,7 @@ export class ProfileService {
                 const json = await response.json() as ({ data: GraphUserResponse });
                 const { data: { user } } = json;
 
-                user.edge_owner_to_timeline_media.edges.forEach(edge => posts[edge.node.shortcode] = this.mapEdgeToPost(edge));
+                user.edge_owner_to_timeline_media.edges.forEach((edge, i) => posts[edge.node.shortcode] = this.mapEdgeToPost(edge, i));
                 
                 if (user.edge_owner_to_timeline_media.page_info.has_next_page) {
                     end_cursor = user.edge_owner_to_timeline_media.page_info.end_cursor;
@@ -101,7 +101,7 @@ export class ProfileService {
         return page;
     }
 
-    private mapEdgeToPost(edge: Edge): InstagramPost {
+    private mapEdgeToPost(edge: Edge, index: number): InstagramPost {
         const node = edge.node;
         const caption = node.edge_media_to_caption.edges[0].node.text;
         const shortCode = node.shortcode;
@@ -109,7 +109,7 @@ export class ProfileService {
         const takenAtTimestamp = node.taken_at_timestamp;
 
         const post = { caption, shortCode, hashTags, takenAtTimestamp };
-        const template = this.getTemplateForPost(edge.node.owner.username, post);
+        const template = this.getTemplateForPost(post, index);
 
         return { ...post, template };
     }
