@@ -135,6 +135,6 @@ export class ProfileService {
     }
 
     private isGraphURL(x: { url: () => string }): boolean {
-        return x.url().includes('graph') && !x.url().includes('user_id');
+        return x.url().includes('graphql/query') && !x.url().includes('user_id');
     }
 }
