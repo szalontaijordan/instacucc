@@ -25,6 +25,27 @@ export class ProfileService {
         return { posts };
     }
 
+    async getGroupedUserPosts(username: string, hashtags: Array<string>, page: number, pageSize: number = 10): Promise<{ groups: {[hashtag: string]: Array<InstagramPost> } }> {
+        const groups: { [hashtag: string]: Array<InstagramPost> } = { 'nohashtag': [] };
+        const results = await this.getUserPosts(username, hashtags, page, pageSize);
+
+        if (!Array.isArray(hashtags) || hashtags.length === 0) {
+            results.posts.forEach(post => post.hashTags.forEach(tag => groups[tag] = []));
+        } else {
+            hashtags.forEach(tag => groups[tag] = []);
+        }
+
+        results.posts.forEach(post => {
+            if (post.hashTags.length === 0) {
+                groups['nohashtag'].push({ ...post });
+            } else {
+                post.hashTags.forEach(tag => groups[tag] && groups[tag].push({ ...post }));
+            }
+        });
+
+        return { groups };
+    }
+
     private getTemplateForPost(post: InstagramPost, index: number) {
         const { shortCode } = post;
         return createEmbedTemplate(shortCode, index);
@@ -67,7 +88,7 @@ export class ProfileService {
         if (url !== 'timeout') {
             let end_cursor = user.edge_owner_to_timeline_media.page_info.end_cursor;
             do {
-                url = url.replace(/%22after%22%3A%22.*%22/, `%22after%22%3A%22${end_cursor}%22`);
+                url = url.replace(/\"after\":\".*\"/, `"after":"${end_cursor}"`);
                 console.log('[ProfileService]: GET', url);
 
                 const response = await fetch(url);
@@ -100,9 +121,11 @@ export class ProfileService {
         page.on('console', x => console.log('[PUPPETEER]: ', x.text()));
         page.on('request', async (request) => {
             if (this.isGraphURL(request)) {
+                const newURL = decodeURIComponent(request.url()).replace(/\"first\":[0-9]+/, `"first":${batchSize}`);
+
                 request.respond({
                     status: 200,
-                    body: JSON.stringify({ url: request.url().replace(/%22first%22%3A[0-9]+/, `%22first%22%3A${batchSize}`) }),
+                    body: JSON.stringify({ url: newURL }),
                     contentType: 'application/json'
                 });
             } else {
@@ -115,7 +138,7 @@ export class ProfileService {
 
     private mapEdgeToPost(edge: Edge, index: number): InstagramPost {
         const node = edge.node;
-        const caption = node.edge_media_to_caption.edges[0].node.text;
+        const caption = node.edge_media_to_caption.edges[0] ? node.edge_media_to_caption.edges[0].node.text : '';
         const shortCode = node.shortcode;
         const hashTags = caption.match(hashtagRegex) || [];
         const takenAtTimestamp = node.taken_at_timestamp;

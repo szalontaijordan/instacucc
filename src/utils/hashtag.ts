@@ -1,4 +1,4 @@
-export const hashtagRegex = /(\#[a-zA-Záéúőóüö_]+\b)(?!;)/gm;
+export const hashtagRegex = /(\#[a-zA-Záéúőóüö_0-9]+\b)(?!;)/gm;
 
 export function processHashtagList(list: string): Array<string> {
     let array;

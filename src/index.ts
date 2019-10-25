@@ -16,11 +16,17 @@ import { processHashtagList } from './utils/hashtag';
     app.get('/ig/:username/:page', async (req, res) => {
         try {
             const { username, page} = req.params;
-            const { hashtags, pageSize } = req.query;
+            const { hashtags, pageSize, grouped } = req.query;
 
             const hashtagArray = processHashtagList(hashtags || '');
             const chunkSize = Math.min(Number(pageSize) || 10, 50);
-            const response = await profileService.getUserPosts(username, hashtagArray, Number(page), chunkSize);
+
+            let response;
+            if (grouped !== undefined) {
+                response = await profileService.getGroupedUserPosts(username, hashtagArray, Number(page), chunkSize);
+            } else {
+                response = await profileService.getUserPosts(username, hashtagArray, Number(page), chunkSize);
+            }
 
             res.send(response);
         } catch (e) {
