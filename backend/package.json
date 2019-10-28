@@ -21,12 +21,12 @@
     "node-cache": "^5.0.0",
     "node-fetch": "^2.6.0",
     "puppeteer": "^1.20.0",
-    "typescript": "^3.6.4"
+    "typescript": "^3.6.4",
+    "@types/node": "^12.11.2"
   },
   "devDependencies": {
     "@types/cors": "^2.8.6",
     "@types/express": "^4.17.1",
-    "@types/node": "^12.11.2",
     "@types/node-fetch": "^2.5.2",
     "@types/puppeteer": "^1.20.2",
     "nodemon": "^1.19.4",

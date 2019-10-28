@@ -1,6 +1,6 @@
 import express from 'express';
 import cors from 'cors';
-import * as path from 'path';
+import path from 'path';
 
 import { launch } from 'puppeteer';
 
