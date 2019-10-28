@@ -8,7 +8,7 @@ import { APIRouter } from './controllers/api/api.controller';
 
 (async () => {
     const app = express();
-    const port = process.env.PORT || 3000;
+    const port = process.env.PORT || 3001;
 
     const browser = await launch({ args: [ '--no-sandbox' ]});
     const profileService = new ProfileService(browser);
@@ -18,5 +18,5 @@ import { APIRouter } from './controllers/api/api.controller';
     app.use(cors());
     app.use('/api', APIRouter(profileService));
 
-    app.listen(port, () => console.log('Application starts at port', port));
+    app.listen(port, () => console.log('Application starts at port:', port));
 })();
