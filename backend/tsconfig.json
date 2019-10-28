@@ -16,7 +16,9 @@
         "./src/types/*"
       ]
     },
-    "lib": ["es2018", "dom", "es6"]
+    "lib": ["es2018", "dom", "es6"],
+    "types": ["node"],
+    "typeRoots": [ "../node_modules/@types" ]
   },
   "include": [
     "./src/**/*"
