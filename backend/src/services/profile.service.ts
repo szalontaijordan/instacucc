@@ -58,9 +58,9 @@ export class ProfileService {
         return { groups };
     }
 
-    private getTemplateForPost(post: InstagramPost, index: number) {
-        const { shortCode } = post;
-        return createEmbedTemplate(shortCode, index);
+    private getTemplateForPost(post: InstagramPost, username: string) {
+        const { shortCode, takenAtTimestamp } = post;
+        return createEmbedTemplate(shortCode, username, takenAtTimestamp);
     }
 
     private async getUserPostChunk(username: string, $top: number, $skip: number): Promise<{ posts: Array<InstagramPost> }> {
@@ -156,7 +156,7 @@ export class ProfileService {
         const takenAtTimestamp = node.taken_at_timestamp;
 
         const post = { caption, shortCode, hashTags: hashTags.map(tag => tag.toLowerCase()), takenAtTimestamp };
-        const template = this.getTemplateForPost(post, index).replace(/\s+/g, ' ');
+        const template = this.getTemplateForPost(post, edge.node.owner.username).replace(/\s+/g, ' ');
 
         return { ...post, template };
     }

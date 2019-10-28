@@ -1,0 +1,25 @@
+.PostList li {
+    margin: 0 auto;
+}
+
+.PostList ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.posts {
+    column-count: 1;
+}
+
+@media (min-width: 720px) {
+    .posts {
+        column-count: 2;
+    }
+}
+
+@media (min-width: 1200px) {
+    .posts {
+        column-count: 3;
+    }
+}

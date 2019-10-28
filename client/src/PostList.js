@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import './PostList.css';
 
 export default function PostList({ username }) {
     const [groups, setGroups] = useState({ groups: {} });
@@ -12,6 +13,8 @@ export default function PostList({ username }) {
         }
         fetchGroups();
     }, []);
+
+    useEffect(() => window.instgrm && window.instgrm.Embeds.process(), [groups]);
 
     return (
         <div className="PostList">

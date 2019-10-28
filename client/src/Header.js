@@ -22,7 +22,11 @@ export default function Header({ username }) {
             <div className="avatar">
                 { avatar && <img src={avatar} alt={username} /> }
             </div>
-            <h1>Iringó Design</h1>
+            <h1>
+              <span>IRINGO</span>
+              <span>•</span>
+              <span>DESIGN</span>
+            </h1>
             <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce in dictum sem. Nunc ac fermentum libero, et eleifend purus. Curabitur mattis aliquet massa, non consectetur mi vehicula eu.</p>
             </div>
         </header>
