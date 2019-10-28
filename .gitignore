@@ -1,7 +1,9 @@
-/node_modules
+/node_modules/
+/dist/
 
 client/node_modules/
 backend/node_modules/
 
 client/dist/
 backend/dist/
+
