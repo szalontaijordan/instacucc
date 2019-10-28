@@ -65,7 +65,7 @@ export class ProfileService {
             setTimeout(() => resolve({ url: 'timeout' }), 8000);
         });
 
-        await page.goto(`https://instagram.com/${username}`);
+        await page.goto(`https://instagram.com/${username}`, { waitUntil: 'domcontentloaded' });
 
         let { url } = await Promise.race([ getGraphQLQuery, getGraphQLQueryTimeout ]);
         
