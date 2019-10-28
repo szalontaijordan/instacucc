@@ -17,6 +17,14 @@ import { APIRouter } from './controllers/api/api.controller';
 
     app.use(cors());
     app.use('/api', APIRouter(profileService));
+    app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+        // TODO:
+        if (err) {
+            res.status(500).send({ error: err });
+        } else {
+            next();
+        }
+    });
 
     app.listen(port, () => console.log('Application starts at port:', port));
 })();

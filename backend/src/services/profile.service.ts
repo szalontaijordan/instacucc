@@ -10,6 +10,18 @@ export class ProfileService {
     constructor(private browser: Browser) {
     }
 
+    async getUserProfilePicture(username: string): Promise<string> {
+        const page = await this.browser.newPage();
+        await page.goto(`https://instagram.com/${username}`, { waitUntil: 'domcontentloaded' });
+
+        const initialData: GraphUserResponse = await page.evaluate(() => {
+            return (window as any)._sharedData.entry_data.ProfilePage[0].graphql as GraphUserResponse;
+        });
+
+        await page.close();
+        return initialData.user.profile_pic_url;
+    }
+
     async getUserPosts(username: string, hashtags: Array<string>, page: number, pageSize: number = 10): Promise<{ posts: Array<InstagramPost> }> {
         const chunk = await this.getUserPostChunk(username, pageSize, (page - 1) * pageSize);
 
