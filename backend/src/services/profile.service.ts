@@ -127,9 +127,9 @@ export class ProfileService {
     private async queryInstagramGraphQL(user: GraphUser, url: string, postMap: InstagramPostMap, $top: number, $skip: number): Promise<InstagramPostMap> {
         const posts: InstagramPostMap = { ...postMap };
     
-        let { page_info } = user.edge_owner_to_timeline_media;
+        let page_info = user.edge_owner_to_timeline_media.page_info;
 
-        while (page_info.has_next_page || this.isPageFull(posts, $skip, $top)) {
+        while (!this.isPageFull(posts, $skip, $top) && page_info.has_next_page) {
             url = url.replace(/\"after\":\".*\"/, `"after":"${page_info.end_cursor}"`);
             console.log('[ProfileService]: GET', url);
 
