@@ -18,6 +18,7 @@
   "dependencies": {
     "cors": "^2.8.5",
     "express": "^4.17.1",
+    "node-cache": "^5.0.0",
     "node-fetch": "^2.6.0",
     "puppeteer": "^1.20.0",
     "typescript": "^3.6.4"

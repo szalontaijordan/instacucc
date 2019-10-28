@@ -1,25 +1,24 @@
 import { Browser, Page } from 'puppeteer';
 import fetch from 'node-fetch';
-import { GraphUserResponse, Edge } from 'instagram.types';
+import { GraphUserResponse, Edge, GraphUser, InstagramUserProfile } from 'instagram.types';
 import { InstagramPost, InstagramPostMap } from 'common.types';
 import { createEmbedTemplate } from './embed.template';
 import { hashtagRegex } from '../utils/hashtag';
+import { CahceService } from './cache.service';
 
 export class ProfileService {
 
-    constructor(private browser: Browser) {
+    constructor(private browser: Browser, private cacheService: CahceService) {
     }
 
     async getUserProfilePicture(username: string): Promise<string> {
         const page = await this.browser.newPage();
         await page.goto(`https://instagram.com/${username}`, { waitUntil: 'domcontentloaded' });
 
-        const initialData: GraphUserResponse = await page.evaluate(() => {
-            return (window as any)._sharedData.entry_data.ProfilePage[0].graphql as GraphUserResponse;
-        });
+        const user = await this.getInitialUserProfile(username, page);
 
         await page.close();
-        return initialData.user.profile_pic_url;
+        return user.profile_pic_url;
     }
 
     async getUserPosts(username: string, hashtags: Array<string>, page: number, pageSize: number = 10): Promise<{ posts: Array<InstagramPost> }> {
@@ -37,7 +36,7 @@ export class ProfileService {
         return { posts };
     }
 
-    async getGroupedUserPosts(username: string, hashtags: Array<string>, page: number, pageSize: number = 10): Promise<{ groups: {[hashtag: string]: Array<InstagramPost> } }> {
+    async getGroupedUserPosts(username: string, hashtags: Array<string>, page: number, pageSize: number = 10): Promise<{ groups: { [hashtag: string]: Array<InstagramPost> } }> {
         const groups: { [hashtag: string]: Array<InstagramPost> } = { 'nohashtag': [] };
         const results = await this.getUserPosts(username, hashtags, page, pageSize);
 
@@ -65,65 +64,88 @@ export class ProfileService {
 
     private async getUserPostChunk(username: string, $top: number, $skip: number): Promise<{ posts: Array<InstagramPost> }> {
         console.time(`ProfileService.getUserPosts(${username}, ${$top}, ${$skip})`);
-        const page = await this.createProfilePage($top);
-        const getGraphQLQuery: Promise<{ url: string }> = new Promise(resolve => {
-            page.on('response', async response => {
-                if (this.isGraphURL(response)) {
-                    resolve(response.json());
-                }
-            });
-        });
-        const getGraphQLQueryTimeout: Promise<{ url: string }> = new Promise(resolve => {
-            setTimeout(() => resolve({ url: 'timeout' }), 8000);
-        });
-
-        await page.goto(`https://instagram.com/${username}`, { waitUntil: 'domcontentloaded' });
-
-        let { url } = await Promise.race([ getGraphQLQuery, getGraphQLQueryTimeout ]);
-        
         const posts: InstagramPostMap = {};
-        const initialData: GraphUserResponse = await page.evaluate(() => {
-            return (window as any)._sharedData.entry_data.ProfilePage[0].graphql as GraphUserResponse;
-        });
-        
-        await page.close();
-        
-        const { user } = initialData;
+        let userProfile: InstagramUserProfile = this.cacheService.getInitialUserProfile(username);
+        let url;
+        let user;
+
+        if (userProfile) {
+            url = userProfile.url.replace(/\"first\":[0-9]+/, `"first":${$top}`);
+            user = userProfile.user;
+        } else {
+            const page = await this.createProfilePage($top);
+            const getGraphQLQuery: Promise<{ url: string }> = new Promise(resolve => {
+                page.on('response', async response => {
+                    if (this.isGraphURL(response)) {
+                        resolve(response.json());
+                    }
+                });
+            });
+            const getGraphQLQueryTimeout: Promise<{ url: string }> = new Promise(resolve => {
+                setTimeout(() => resolve({ url: 'timeout' }), 3000);
+            });
+
+            await page.goto(`https://instagram.com/${username}`);
+            await page.waitForFunction('window._sharedData !== undefined');
+
+            url = (await Promise.race([getGraphQLQuery, getGraphQLQueryTimeout])).url;
+            user = await this.getInitialUserProfile(username, page);
+
+            // wont wait for this to happen
+            page.close();
+            this.cacheService.setInitialUserProfile(username, { url, user });
+        }
+
         user.edge_owner_to_timeline_media.edges.forEach((edge, i) => posts[edge.node.shortcode] = this.mapEdgeToPost(edge, i));
-        
-        if (this.isPageFull(posts, $skip, $top)) {
+
+        if (url === 'timeout' || this.isPageFull(posts, $skip, $top)) {
+            console.timeEnd(`ProfileService.getUserPosts(${username}, ${$top}, ${$skip})`);
             return {
                 posts: this.getPageOfPosts(posts, $skip, $top)
             };
+        } else {
+            const queryPosts = await this.queryInstagramGraphQL(user, url, posts, $top, $skip);
+            console.timeEnd(`ProfileService.getUserPosts(${username}, ${$top}, ${$skip})`);
+            return {
+                posts: this.getPageOfPosts(queryPosts, $skip, $top)
+            };
         }
-        
-        if (url !== 'timeout') {
-            let end_cursor = user.edge_owner_to_timeline_media.page_info.end_cursor;
-            do {
-                url = url.replace(/\"after\":\".*\"/, `"after":"${end_cursor}"`);
-                console.log('[ProfileService]: GET', url);
+    }
 
-                const response = await fetch(url);
-                if (!response.ok) {
-                    const { status, statusText, headers } = response;
-                    throw new Error(JSON.stringify({ status, statusText, headers }));
-                }
-                const json = await response.json() as ({ data: GraphUserResponse });
-                const { data: { user } } = json;
-
-                user.edge_owner_to_timeline_media.edges.forEach((edge, i) => posts[edge.node.shortcode] = this.mapEdgeToPost(edge, i));
-                
-                if (user.edge_owner_to_timeline_media.page_info.has_next_page) {
-                    end_cursor = user.edge_owner_to_timeline_media.page_info.end_cursor;
-                } else {
-                    break;
-                }
-            } while (!this.isPageFull(posts, $skip, $top));
+    private async getInitialUserProfile(username: string, page: Page): Promise<GraphUser> {
+        let userProfile = this.cacheService.getInitialUserProfile(username);
+        if (!userProfile) {
+            const initialData: GraphUserResponse = await page.evaluate(() => {
+                return (window as any)._sharedData.entry_data.ProfilePage[0].graphql as GraphUserResponse;
+            });
+            return initialData.user;
         }
 
-        return {
-            posts: this.getPageOfPosts(posts, $skip, $top)
-        };
+        return userProfile.user;
+    }
+
+    private async queryInstagramGraphQL(user: GraphUser, url: string, postMap: InstagramPostMap, $top: number, $skip: number): Promise<InstagramPostMap> {
+        const posts: InstagramPostMap = { ...postMap };
+    
+        let { page_info } = user.edge_owner_to_timeline_media;
+
+        while (page_info.has_next_page || this.isPageFull(posts, $skip, $top)) {
+            url = url.replace(/\"after\":\".*\"/, `"after":"${page_info.end_cursor}"`);
+            console.log('[ProfileService]: GET', url);
+
+            const response = await fetch(url);
+            if (!response.ok) {
+                const { status, statusText, headers } = response;
+                throw new Error(JSON.stringify({ status, statusText, headers }));
+            }
+            const json = await response.json() as ({ data: GraphUserResponse });
+            user = json.data.user;
+
+            page_info = user.edge_owner_to_timeline_media.page_info;
+            user.edge_owner_to_timeline_media.edges.forEach((edge, i) => posts[edge.node.shortcode] = this.mapEdgeToPost(edge, i));
+        }
+
+        return posts;
     }
 
     private async createProfilePage(batchSize: number = 20): Promise<Page> {
@@ -160,7 +182,7 @@ export class ProfileService {
 
         return { ...post, template };
     }
- 
+
     private getPageOfPosts(posts: InstagramPostMap, $skip: number, $top: number): Array<InstagramPost> {
         return Object.values(posts).slice($skip, $skip + $top);
     }

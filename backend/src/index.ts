@@ -5,13 +5,15 @@ import { launch } from 'puppeteer';
 
 import { ProfileService } from './services/profile.service';
 import { APIRouter } from './controllers/api/api.controller';
+import { CacheServiceNode } from './services/cache.service.node';
 
 (async () => {
     const app = express();
     const port = process.env.PORT || 3001;
 
     const browser = await launch({ args: [ '--no-sandbox' ]});
-    const profileService = new ProfileService(browser);
+    const cacheService = new CacheServiceNode();
+    const profileService = new ProfileService(browser, cacheService);
 
     app.set('trust proxy', 1);
 

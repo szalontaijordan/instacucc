@@ -146,3 +146,8 @@ export interface GraphUser {
 export interface GraphUserResponse {
     user: GraphUser;
 }
+
+export interface InstagramUserProfile {
+    url: string;
+    user: GraphUser;
+}
