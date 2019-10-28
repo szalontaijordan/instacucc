@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import * as path from 'path';
 
 import { launch } from 'puppeteer';
 
@@ -19,6 +20,10 @@ import { CacheServiceNode } from './services/cache.service.node';
 
     app.use(cors());
     app.use('/api', APIRouter(profileService));
+    
+    app.use(express.static(path.join(__dirname, 'build')));
+    app.get('/*', (req, res) => res.sendFile(path.join(__dirname, 'build', 'index.html')));
+
     app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
         // TODO:
         if (err) {

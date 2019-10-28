@@ -8,7 +8,7 @@
     "moduleResolution": "node",
     "sourceMap": true,
     "rootDir": "src",
-    "outDir": "dist",
+    "outDir": "./dist",
     "baseUrl": ".",
     "paths": {
       "*": [

@@ -6,7 +6,9 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "concurrently \"cd backend && npm run nodemon --watch ./src/index.ts --exec ts-node ./src/index.ts\" \"cd client && npm start\"",
-    "start": "echo \"There is no start script setup yet\" && exit 1"
+    "start": "node backend/dist/index.js",
+    "preinstall": "cd backend && npm install && cd .. && cd client && npm install",
+    "postinstall": "cd backend && npm run tsc && cd .. && cd client && npm run build"
   },
   "repository": {
     "type": "git",
