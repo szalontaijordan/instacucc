@@ -9,7 +9,8 @@
     "watch-ts": "tsc --watch",
     "dev": "nodemon dist/index.js",
     "nodemon": "nodemon",
-    "start": "node dist/index.js"
+    "start": "node dist/index.js",
+    "postinstall": "npm run tsc"
   },
   "keywords": [],
   "author": "",

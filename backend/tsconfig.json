@@ -4,7 +4,7 @@
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "target": "es3",
-    "noImplicitAny": true,
+    "noImplicitAny": false,
     "moduleResolution": "node",
     "sourceMap": true,
     "rootDir": "./src",
@@ -16,7 +16,7 @@
         "./src/types/*"
       ]
     },
-    "lib": ["es2018", "dom"]
+    "lib": ["es2018", "dom", "es6"]
   },
   "include": [
     "./src/**/*"
