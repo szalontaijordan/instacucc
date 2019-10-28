@@ -7,17 +7,18 @@
     "noImplicitAny": true,
     "moduleResolution": "node",
     "sourceMap": true,
-    "rootDir": "src",
+    "rootDir": "./src",
     "outDir": "./dist",
     "baseUrl": ".",
     "paths": {
       "*": [
-        "node_modules/*",
-        "src/types/*"
+        "./node_modules/*",
+        "./src/types/*"
       ]
-    }
+    },
+    "lib": ["es2018", "dom"]
   },
   "include": [
-    "src/**/*"
+    "./src/**/*"
   ]
 }
