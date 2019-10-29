@@ -66,30 +66,33 @@ export class ProfileService {
         console.time(`ProfileService.getUserPosts(${username}, ${$top}, ${$skip})`);
         const posts: InstagramPostMap = {};
         let userProfile: InstagramUserProfile = this.cacheService.getInitialUserProfile(username);
-        let url;
-        let user;
+        let url: string;
+        let user: GraphUser;
 
         if (userProfile) {
             url = userProfile.url.replace(/\"first\":[0-9]+/, `"first":${$top}`);
             user = userProfile.user;
         } else {
             const page = await this.createProfilePage($top);
-            const getGraphQLQuery: Promise<{ url: string }> = new Promise(resolve => {
+            const getGraphQLQuery: Promise<string> = new Promise(resolve => {
                 page.on('response', async response => {
                     if (this.isGraphURL(response)) {
-                        resolve(response.json());
+                        const json = await response.json();
+                        resolve(json.url);
                     }
                 });
-            });
-            const getGraphQLQueryTimeout: Promise<{ url: string }> = new Promise(resolve => {
-                setTimeout(() => resolve({ url: 'timeout' }), 3000);
             });
 
             await page.goto(`https://instagram.com/${username}`);
             await page.waitForFunction('window._sharedData !== undefined');
 
-            url = (await Promise.race([getGraphQLQuery, getGraphQLQueryTimeout])).url;
             user = await this.getInitialUserProfile(username, page);
+
+            if (!user.edge_owner_to_timeline_media.page_info.has_next_page) {
+                url = 'single-page';
+            } else {
+                url = await getGraphQLQuery;
+            }
 
             // wont wait for this to happen
             page.close();
@@ -98,7 +101,7 @@ export class ProfileService {
 
         user.edge_owner_to_timeline_media.edges.forEach((edge, i) => posts[edge.node.shortcode] = this.mapEdgeToPost(edge, i));
 
-        if (url === 'timeout' || this.isPageFull(posts, $skip, $top)) {
+        if (url === 'single-page' || this.isPageFull(posts, $skip, $top)) {
             console.timeEnd(`ProfileService.getUserPosts(${username}, ${$top}, ${$skip})`);
             return {
                 posts: this.getPageOfPosts(posts, $skip, $top)
