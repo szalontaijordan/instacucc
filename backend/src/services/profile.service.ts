@@ -11,14 +11,14 @@ export class ProfileService {
     constructor(private browser: Browser, private cacheService: CahceService) {
     }
 
-    async getUserProfilePicture(username: string): Promise<string> {
+    async getUserProfile(username: string): Promise<GraphUser> {
         const page = await this.browser.newPage();
         await page.goto(`https://instagram.com/${username}`, { waitUntil: 'domcontentloaded' });
 
         const user = await this.getInitialUserProfile(username, page);
 
         await page.close();
-        return user.profile_pic_url;
+        return user;
     }
 
     async getUserPosts(username: string, hashtags: Array<string>, page: number, pageSize: number = 10): Promise<{ posts: Array<InstagramPost> }> {

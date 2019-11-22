@@ -7,11 +7,11 @@ export function IGRouter(profileService: ProfileService) {
 
     router.get('/', (req, res) => res.send('<strong>IG</strong><div><pre>Use /:username/:page?hashtags=tag1,tag2&grouped</pre></div>'));
 
-    router.get('/:username/avatar', async (req, res) => {
+    router.get('/:username/profile', async (req, res) => {
         const { username } = req.params;
-        const avatar = await profileService.getUserProfilePicture(username);
+        const profile = await profileService.getUserProfile(username);
 
-        res.send({ avatar });
+        res.send({ ...profile });
     });
 
     router.get('/:username/:page', async (req, res) => {

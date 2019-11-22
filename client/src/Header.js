@@ -1,34 +1,27 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
+import emojiStrip from 'emoji-strip';
 
 import './Header.css';
 
-export default function Header({ username }) {
-    const [avatar, setAvatar] = useState('');
+export default function Header({ profile = null, nameSeparator = '•' }) {
+  const titleFrom = profile => {
+    const parts = profile.full_name.split(nameSeparator).map(part => emojiStrip(part));
+    parts.splice(parts.length / 1 - 1, 0, nameSeparator);
 
-    useEffect(() => {
-      async function fetchAvatar() {
-        const response = await fetch(`/api/ig/${username}/avatar`);
-        const json = await response.json();
-  
-        setAvatar(json.avatar);
-      }
-  
-      fetchAvatar();
-    }, []);
-  
-    return (
-        <header className="Header">
-            <div className="center">
-            <div className="avatar">
-                { avatar && <img src={avatar} alt={username} /> }
-            </div>
-            <h1>
-              <span>IRINGO</span>
-              <span>•</span>
-              <span>DESIGN</span>
-            </h1>
-            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce in dictum sem. Nunc ac fermentum libero, et eleifend purus. Curabitur mattis aliquet massa, non consectetur mi vehicula eu.</p>
-            </div>
-        </header>
-    );  
+    return parts;
+  }
+
+  return (
+    <header className="Header">
+      <div className="center">
+        <div className="avatar">
+          {profile && <img src={profile.profile_pic_url} alt={profile ? profile.username : 'user'} />}
+        </div>
+        <h1>
+          {profile ? titleFrom(profile).map((part, index) => <span key={index}>{part}</span>) : '...'}
+        </h1>
+        <p>{profile ? profile.biography : ' ... '}</p>
+      </div>
+    </header>
+  );
 }
