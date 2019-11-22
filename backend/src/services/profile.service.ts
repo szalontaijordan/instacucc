@@ -118,6 +118,7 @@ export class ProfileService {
     private async getInitialUserProfile(username: string, page: Page): Promise<GraphUser> {
         let userProfile = this.cacheService.getInitialUserProfile(username);
         if (!userProfile) {
+            await page.waitFor(() => !!window['_sharedData']);
             const initialData: GraphUserResponse = await page.evaluate(() => {
                 return (window as any)._sharedData.entry_data.ProfilePage[0].graphql as GraphUserResponse;
             });
