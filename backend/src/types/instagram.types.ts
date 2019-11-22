@@ -140,8 +140,14 @@ export interface EdgeOwnerToTimelineMedia {
 
 export interface GraphUser {
     edge_owner_to_timeline_media: EdgeOwnerToTimelineMedia;
+    profile_pic_url?: string;
 }
 
 export interface GraphUserResponse {
+    user: GraphUser;
+}
+
+export interface InstagramUserProfile {
+    url: string;
     user: GraphUser;
 }
