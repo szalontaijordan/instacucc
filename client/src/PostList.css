@@ -12,6 +12,15 @@
     column-count: 1;
 }
 
+.PostList h2 {
+    position: sticky;
+    top: 0;
+    padding: 16px 0;
+    border-bottom: 1px solid #aaa;
+    color: #0078D7;
+    background-color: white;
+}
+
 @media (min-width: 720px) {
     .posts {
         column-count: 2;
