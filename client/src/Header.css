@@ -45,9 +45,16 @@ h1 span {
 }
 
 .bio {
+  margin-top: 32px;
   font-size: 1.2em;
 }
 
 .bio p {
   text-align: left;
+}
+
+@media (min-width: 1024px) {
+  .bio {
+    margin-top: 64px;
+  }
 }

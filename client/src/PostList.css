@@ -1,5 +1,5 @@
 .PostList {
-    padding: 64px 0;
+    padding: 8px 0;
 }
 
 .PostList li {
@@ -13,14 +13,14 @@
 }
 
 .posts {
-    padding: 32px;
+    padding: 8px;
     column-count: 1;
 }
 
 .PostList h2 {
     position: sticky;
     top: 0;
-    padding: 16px 32px;
+    padding: 4px 8px;
     border-bottom: 1px solid #aaa;
     border-top: 1px solid #aaa;
     color: #0078D7;
@@ -28,13 +28,31 @@
 }
 
 @media (min-width: 1024px) {
+    .PostList {
+        padding: 16px 0;
+    }
+    
+    .PostList h2 {
+        padding: 8px 16px;
+    }
+
     .posts {
+        padding: 16px;
         column-count: 2;
     }
 }
 
 @media (min-width: 1440px) {
+    .PostList {
+        padding: 32px 0;
+    }
+
+    .PostList h2 {
+        padding: 16px 32px;
+    }
+
     .posts {
+        padding: 32px;
         column-count: 3;
     }
 }
