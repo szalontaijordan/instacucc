@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Fragment } from 'react';
 
 import Header from './Header';
 import PostList from './PostList';
+import SplashScreen from './SplashScreen';
+import Footer from './Footer';
 
 import './App.css';
 
@@ -23,8 +25,14 @@ export default function App({ username = 'iringodesign' }) {
 
     return (
         <div className="App">
-            <Header username={username} profile={profile} />
-            <PostList username={username} hashtags={hashtags} />
+            {!profile
+                ? <SplashScreen username={username} />
+                : <Fragment>
+                    <Header username={username} profile={profile} />
+                    <PostList username={username} hashtags={hashtags} />
+                    <Footer />
+                </Fragment>
+            }
         </div>
     );
 }

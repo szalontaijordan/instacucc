@@ -1,7 +1,7 @@
 h1 {
   font-family: 'Playfair Display SC', sans-serif;
-  letter-spacing: 0.5em;
-  font-size: 2.6em;
+  letter-spacing: 0.25em;
+  font-size: 2em;
 }
 
 h1 span {
@@ -9,7 +9,11 @@ h1 span {
   letter-spacing: inherit;
 }
 
-@media (min-width: 720px) {
+@media (min-width: 1024px) {
+  h1 {
+    font-size: 2.5em;
+  }
+
   h1 span {
     display: inline-block;
   }
@@ -38,4 +42,12 @@ h1 span {
   border-radius: 50%;
   background-color: #eee;
   border: 4px solid #eee;
+}
+
+.bio {
+  font-size: 1.2em;
+}
+
+.bio p {
+  text-align: left;
 }

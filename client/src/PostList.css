@@ -1,3 +1,7 @@
+.PostList {
+    padding: 64px 0;
+}
+
 .PostList li {
     margin: 0 auto;
 }
@@ -9,25 +13,27 @@
 }
 
 .posts {
+    padding: 32px;
     column-count: 1;
 }
 
 .PostList h2 {
     position: sticky;
     top: 0;
-    padding: 16px 0;
+    padding: 16px 32px;
     border-bottom: 1px solid #aaa;
+    border-top: 1px solid #aaa;
     color: #0078D7;
     background-color: white;
 }
 
-@media (min-width: 720px) {
+@media (min-width: 1024px) {
     .posts {
         column-count: 2;
     }
 }
 
-@media (min-width: 1200px) {
+@media (min-width: 1440px) {
     .posts {
         column-count: 3;
     }

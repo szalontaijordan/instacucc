@@ -1,0 +1,22 @@
+.SplashScreen .username {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    z-index: 1000;
+    transform: translate(-50%, -50%);
+    font-size: 2em;
+    color: #0078D7;
+    font-weight: normal;
+}
+
+@media (min-width: 1024px) {
+    .SplashScreen .username {
+        font-size: 3em;
+    }
+}
+
+@media (min-width: 1440px) {
+    .SplashScreen .username {
+        font-size: 5em;
+    }
+}

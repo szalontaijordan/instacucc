@@ -20,7 +20,9 @@ export default function Header({ profile = null, nameSeparator = '•' }) {
         <h1>
           {profile ? titleFrom(profile).map((part, index) => <span key={index}>{part}</span>) : '...'}
         </h1>
-        { profile ? profile.biography.split('\n').map((part, i) => <p key={i}>{part}</p>) : ' ... ' }
+        <div className="bio">
+          { profile ? profile.biography.split('\n').map((part, i) => <p key={i}>{part}</p>) : ' ... ' }
+        </div>
       </div>
     </header>
   );
