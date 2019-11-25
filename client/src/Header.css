@@ -1,3 +1,7 @@
+.Header {
+  padding-top: 8px;
+}
+
 h1 {
   font-family: 'Playfair Display SC', sans-serif;
   letter-spacing: 0.25em;
@@ -29,7 +33,7 @@ h1 span {
 }
 
 .center {
-  margin: 64px auto 0 auto;
+  margin: 32px auto;
   max-width: 1440px;
   text-align: center;
 }
