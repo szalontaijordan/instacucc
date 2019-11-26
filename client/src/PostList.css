@@ -17,6 +17,11 @@
     column-count: 1;
 }
 
+.PostList h1 {
+    text-align: center;
+    margin: 32px auto;
+}
+
 .PostList h2 {
     position: sticky;
     top: 0;

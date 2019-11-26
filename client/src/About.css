@@ -1,0 +1,51 @@
+.About {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border-top: 1px solid #bca0dc;
+    border-bottom: 1px solid #bca0dc;
+    margin-top: 32px;
+}
+
+.About .text {
+    position: relative;
+    transform: translateY(-10%);
+    margin: 0 -8px;
+}
+
+.About .text p {
+    padding: 32px;
+    background-color: white;
+    border: 1px solid #3c1361;
+}
+
+@media (min-width: 768px) {
+    .About {
+        margin-top: 64px;
+    }
+    
+    .About .text {
+        transform: translateY(-25%);
+    }
+}
+
+@media (min-width: 1024px) {
+    .About {
+        flex-direction: row-reverse;
+    }
+
+    .About .text {
+        transform: none;
+        margin: 0;
+        flex: 0 0 50%;
+    }
+
+    .About .text p {
+        transform: translateX(10%);
+    }
+
+    .About .image {
+        flex: 0 0 50%;
+    }
+}

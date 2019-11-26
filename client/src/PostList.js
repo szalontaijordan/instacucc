@@ -28,6 +28,7 @@ export default function PostList({ username, hashtags = [] }) {
 
     return (
         <div className="PostList">
+            <h1><div>•</div><div>Hashtags</div></h1>
             <ul>
                 {activeHashtags.map((key, index) => {
                     return <li key={`group-${index}`}>

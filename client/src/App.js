@@ -4,6 +4,7 @@ import Header from './Header';
 import PostList from './PostList';
 import SplashScreen from './SplashScreen';
 import Footer from './Footer';
+import About from './About';
 
 import './App.css';
 
@@ -29,6 +30,7 @@ export default function App({ username = 'iringodesign' }) {
                 ? <SplashScreen username={username} />
                 : <Fragment>
                     <Header username={username} profile={profile} />
+                    <About />
                     <PostList username={username} hashtags={hashtags} />
                     <Footer />
                 </Fragment>
